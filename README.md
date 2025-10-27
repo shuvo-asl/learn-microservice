@@ -21,6 +21,7 @@ PLACEHOLDER FOR ARCHITECTURE DIAGRAM
 | ------------ | ---- | -------------------------- |
 | Redis        | 6379 | Cache & session management |
 | Redis UI     | 8001 | Redis management interface |
+| Postgresql   | 5435 | Postgresql DB management   |
 
 ## 🛠️ Tech Stack
 
