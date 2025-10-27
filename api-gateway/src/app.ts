@@ -5,9 +5,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 
 // Local imports
-import { logger } from "./config/logger";
+import { logger } from './config/logger';
 import { config } from "./config";
-import { log } from 'console';
 import { rateLimitMiddleware } from './middlewares/rate-limiter.middleware';
 import { proxyServices } from './config/services';
 
