@@ -11,6 +11,9 @@ import { Credential } from '../entity/credential.entity';
 import { AppDataSource } from '../data-source';
 import { createError } from '../utils';
 import { publishUserRegistered } from '../events/producers/userRegistered.producer';
+import { config } from '../config';
+import redis, { RedisClient } from '../config/redis';
+import { logger } from '../config/logger';
 
 interface RegisterDto {
     firstName: string;
@@ -32,7 +35,7 @@ class AuthService {
         const existing = await this.credentialRepository.findOneBy({ email })
 
         if (existing) {
-            return createError('email already in use', 400)
+            throw createError('email already in use', 400)
         }
         const user = new User();
         user.firstName = firstName;
@@ -55,6 +58,47 @@ class AuthService {
             value: user
         })
         return user;
+    }
+
+    async login(email: string, password: string) {
+        const credential = await this.credentialRepository.findOne({
+            where: { email },
+            relations: ['user']
+        })
+
+        if (!credential) {
+            throw createError('invalid email or password', 401)
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, credential.passwordHash)
+
+        if (!isPasswordValid) {
+            throw createError('invalid email or password', 401)
+        }
+        const token = jwt.sign(
+            {
+                id: credential.user.id,
+                email: credential.user.email,
+                firstName: credential.user.firstName,
+                lastName: credential.user.lastName,
+            },
+            config.JWT_SECRET,
+            { expiresIn: config.JWT_EXPIRES_IN as ms.StringValue },
+        );
+        if (!RedisClient['isConnected']) {
+            logger.warn('Redis not connected yet. Skipping token storage.');
+        } else {
+            await redis.setex(`auth:${credential.user.id}:${token}`, 24 * 60 * 60, 'true');
+        }
+        return {
+            token,
+            firstName: credential.user.firstName,
+            lastName: credential.user.lastName,
+            email: credential.email,
+        };
+    }
+    async logout(userId: number, token: string) {
+        await redis.del(`auth:${userId}:${token}`);
     }
 }
 

@@ -1,0 +1,31 @@
+meta {
+  name: {{auth-service-url}}/login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{api-gateway-url}}/api/v1/auth/login
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    "email":"hasan@asl.aero",
+    "password":"123456"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar('token', res.body.token)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

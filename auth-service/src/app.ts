@@ -14,6 +14,9 @@ process.on('warning', (warning: any) => {
 import express from 'express';
 import helmet from 'helmet';
 import { errorHandler } from './middlewares/error.middleware';
+import { verifyToken } from './middlewares/auth.middleware';
+import { reqLogger } from './middlewares/req.middleware';
+import { corsMiddleware } from './middlewares/cors.middleware';
 // Local imports
 import { logger } from './config/logger';
 import { config } from './config';
@@ -25,7 +28,10 @@ const app = express();
 
 // Middlewares
 app.use(helmet());
+app.use(corsMiddleware);
+app.use(reqLogger);
 app.use(express.json());
+app.use(verifyToken);
 
 // Routes
 app.use('/', indexRoutes);

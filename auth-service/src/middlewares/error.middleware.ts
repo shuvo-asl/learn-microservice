@@ -24,6 +24,12 @@ export const errorHandler = (
     const message = error.message || 'Internal server error';
     const status = error.status || 'error';
 
+    logger.error({
+        message,
+        statusCode,
+        stack: error.stack,
+    });
+
     if (process.env.NODE_ENV !== 'production') {
         logger.error({
             message,

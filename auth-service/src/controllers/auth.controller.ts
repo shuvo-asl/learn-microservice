@@ -28,12 +28,14 @@ class AuthController {
 
     async login(req: Request, res: Response, next: NextFunction): Promise<any> {
         const { email, password } = loginSchema.parse(req.body);
-        return res.status(200).json({ message: "User logged in successfully" });
+        const user = await this.authService.login(email, password);
+        return res.status(200).json(user);
     }
 
-    public logout(req: Request, res: Response): void {
-        // Logout logic here
-        res.status(200).json({ message: "User logged out successfully" });
+    async logout(req: Request, res: Response): Promise<any> {
+        await this.authService.logout(req.userId!, req.token);
+
+        return res.status(200).json({ message: 'logged out successfully' });
     }
 }
 
