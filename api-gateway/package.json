@@ -6,6 +6,7 @@
     "scripts": {
         "start": "ts-node src/app.ts",
         "dev": "ts-node-dev src/app.ts",
+        "dev:trace": "node --trace-warnings -r ts-node/register src/app.ts",
         "build": "tsc",
         "lint": "eslint --fix src/**/*.ts",
         "format": "prettier --write src/**/*.ts",
