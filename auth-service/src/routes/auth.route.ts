@@ -1,10 +1,11 @@
 import { Router } from "express";
-const authRoutes = Router();
+import AuthController from "../controllers/auth.controller";
+const authRoutes = Router()
+const authController = new AuthController();
 
 // Define your routes here
-authRoutes.get("/", (req, res) => {
-    res.status(200).json({ message: "Auth Service V1 is running" });
-});
-
+authRoutes.post("/register", authController.register.bind(authController));
+authRoutes.post("/login", authController.login.bind(authController));
+authRoutes.post("/logout", authController.logout.bind(authController));
 
 export { authRoutes };

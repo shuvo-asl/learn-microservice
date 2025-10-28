@@ -2,17 +2,18 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Suppress the KafkaJS timeout warning (known issue)
+// Suppress the KafkaJS timeout warning and util._extend deprecation warning (known issues)
 process.removeAllListeners('warning');
-process.on('warning', (warning) => {
-    if (warning.name !== 'TimeoutNegativeWarning') {
+process.on('warning', (warning: any) => {
+    // Suppress specific known warnings that don't affect functionality
+    if (warning.name !== 'TimeoutNegativeWarning' &&
+        warning.code !== 'DEP0060') {
         console.warn(warning.name, warning.message);
     }
-});
-
-// Third party imports
+});// Third party imports
 import express from 'express';
 import helmet from 'helmet';
+import { errorHandler } from './middlewares/error.middleware';
 // Local imports
 import { logger } from './config/logger';
 import { config } from './config';
@@ -29,6 +30,9 @@ app.use(express.json());
 // Routes
 app.use('/', indexRoutes);
 app.use('/api/v1/auth', authRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 
 // Initialize database and other services
