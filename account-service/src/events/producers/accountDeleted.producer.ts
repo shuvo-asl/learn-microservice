@@ -1,23 +1,17 @@
-import { logger } from "../../config/logger";
-import { producer } from "../kafka";
 import { ACCOUNT_TOPICS } from "../../constants";
+import { KafkaMessage, BaseProducer } from "./base.producer";
 
-export const publishAccountDeleted = async (data: any) => {
-    const topic = ACCOUNT_TOPICS.ACCOUNT_DELETED;
-    logger.info(`Publishing to topic ${topic} with message: ${data}`);
-    try {
-        await producer.send({
-            topic,
-            messages: [
-                {
-                    key: data.key,
-                    value: JSON.stringify(data.value)
-                },
-            ],
-        });
-        logger.info(`User registered event published`, { data });
-    } catch (error) {
-        logger.error("Error publishing user registered event", { error, data });
-        throw error;
-    }
-};
+
+export interface AccountDeletedData {
+    id: number;
+}
+
+export class AccountDeletedProducer extends BaseProducer<AccountDeletedData> {
+    protected readonly topic = ACCOUNT_TOPICS.ACCOUNT_DELETED;
+}
+
+const accountDeletedProducer = new AccountDeletedProducer();
+
+export const publishAccountDeleted = async (
+    data: KafkaMessage<AccountDeletedData>,
+): Promise<void> => accountDeletedProducer.publish(data);
