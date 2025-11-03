@@ -1,0 +1,28 @@
+meta {
+  name: /internal-transaction
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{api-gateway-url}}/api/v1/accounts/internal/transaction
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "accountNumber":"112025110623253",
+    "amount":100000,
+    "type":"CREDIT"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

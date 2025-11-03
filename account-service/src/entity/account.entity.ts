@@ -33,7 +33,7 @@ export class Account {
     id: number;
 
     @Column({ name: 'user_id' })
-    userId: string;
+    userId: number;
 
     @Column({
         name: 'account_number',

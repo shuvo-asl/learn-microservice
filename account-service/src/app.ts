@@ -20,7 +20,7 @@ import { corsMiddleware } from './middlewares/cors.middleware';
 // Local imports
 import { logger } from './config/logger';
 import { config } from './config';
-import { indexRoutes, accountRoutes } from './routes'
+import { indexRoutes, accountRouter } from './routes'
 import init from './init';
 import { AppDataSource } from './data-source';
 
@@ -35,7 +35,7 @@ app.use(verifyToken);
 
 // Routes
 app.use('/', indexRoutes);
-app.use('/api/v1/account', accountRoutes);
+app.use('/api/v1/accounts', accountRouter);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
