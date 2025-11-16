@@ -10,9 +10,9 @@ export const testState = {
     accounts: [] as AccountType[],
 };
 let testUserInitialized = false;
-export const getTestUser = (): UserType => {
+export const getTestUser = (keepPrevious: boolean = true): UserType => {
     // If we already have a test user, return it
-    if (testState.currentTestUser) {
+    if (keepPrevious && testState.currentTestUser) {
         return testState.currentTestUser;
     }
 
@@ -63,7 +63,7 @@ export const loginUser = async (email: string, password: string) => {
 export const cleanUpTestState = () => {
     testState.authToken = "";
     testState.userId = "";
-    testState.currentTestUser = getTestUser();
+    testState.currentTestUser = getTestUser(false); // Reset to a new test user
     testState.accounts = [];
 };
 
