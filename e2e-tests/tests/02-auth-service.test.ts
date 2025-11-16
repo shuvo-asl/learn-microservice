@@ -1,4 +1,11 @@
-import { apiGateway, getTestUser, testState, registerUser, loginUser } from "./utils";
+import { apiGateway, getTestUser, testState, registerUser, loginUser, setTestUser } from "./utils";
+
+// Ensure we have a test user before any tests run
+beforeAll(() => {
+    if (!testState.currentTestUser) {
+        testState.currentTestUser = getTestUser();
+    }
+});
 
 describe("Authentication Service Tests", () => {
     test("User Registration - should return 201 Created", async () => {
@@ -14,7 +21,7 @@ describe("Authentication Service Tests", () => {
     });
 
     test("Registration with existing email should return 400 Bad Request", async () => {
-        const response = await registerUser(testState.currentTestUser);
+        const response = await registerUser(testState.currentTestUser!);
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty("status");
         expect(response.body.status).toBe("error");
@@ -23,13 +30,13 @@ describe("Authentication Service Tests", () => {
     });
 
     test("User Login - should return 200 OK with auth token", async () => {
-        const response = await loginUser(testState.currentTestUser.email, testState.currentTestUser.password);
+        const response = await loginUser(testState.currentTestUser!.email, testState.currentTestUser!.password);
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty("token");
     });
 
     test("Login with incorrect password should return 401 Unauthorized", async () => {
-        const response = await loginUser(testState.currentTestUser.email, "WrongPassword123");
+        const response = await loginUser(testState.currentTestUser!.email, "WrongPassword123");
         expect(response.status).toBe(401);
         expect(response.body).toHaveProperty("status");
         expect(response.body.status).toBe("error");

@@ -31,7 +31,7 @@ class AccountController {
             accountType,
             accountName
         });
-        return res.status(200).json(account);
+        return res.status(201).json(account);
     }
 
     async getAllAccounts(req: Request, res: Response, next: NextFunction) {

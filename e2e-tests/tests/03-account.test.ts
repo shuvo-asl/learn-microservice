@@ -1,17 +1,26 @@
-import { testState, loginUser, apiGateway, cleanupResources } from "./utils";
+import { testState, loginUser, apiGateway, cleanupResources, getTestUser } from "./utils";
+
+// Ensure we use the same test user
+beforeAll(() => {
+    if (!testState.currentTestUser) {
+        // This should not happen if auth tests ran first, but as a fallback
+        testState.currentTestUser = getTestUser();
+    }
+});
 
 describe("Account Service Tests", () => {
     beforeAll(async () => {
-        if (!testState.authToken) {
-            await loginUser(testState.currentTestUser.email, testState.currentTestUser.password);
-        }
+        const loginResponse = await loginUser(
+            testState.currentTestUser!.email,
+            testState.currentTestUser!.password
+        );
     });
 
     afterAll(async () => {
         await cleanupResources();
     });
 
-    test("Create account should return 201 Created", async () => {
+    test("Create an account should return 201 Created", async () => {
         const response = await apiGateway()
             .post("/api/v1/accounts")
             .set("Authorization", `Bearer ${testState.authToken}`)
@@ -28,135 +37,136 @@ describe("Account Service Tests", () => {
         testState.accounts.push(response.body);
     });
 
-    // test("Create another account should return 201 Created", async () => {
-    //     const response = await apiGateway()
-    //         .post("/api/v1/accounts")
-    //         .set("Authorization", `Bearer ${testState.authToken}`)
-    //         .send({
-    //             accountType: "SAVINGS",
-    //             accountName: "Test Savings Account",
-    //         });
 
-    //     expect(response.status).toBe(201);
-    //     expect(response.body).toHaveProperty("id");
-    //     expect(response.body).toHaveProperty("accountType", "SAVINGS");
-    //     expect(response.body).toHaveProperty("accountName", "Test Savings Account");
+    test("Create another account should return 201 Created", async () => {
+        const response = await apiGateway()
+            .post("/api/v1/accounts")
+            .set("Authorization", `Bearer ${testState.authToken}`)
+            .send({
+                accountType: "SAVINGS",
+                accountName: "Test Savings Account",
+            });
 
-    //     testState.accounts.push(response.body);
-    // });
+        expect(response.status).toBe(201);
+        expect(response.body).toHaveProperty("id");
+        expect(response.body).toHaveProperty("accountType", "SAVINGS");
+        expect(response.body).toHaveProperty("accountName", "Test Savings Account");
 
-    // test("List accounts should return 200 OK and array of accounts", async () => {
-    //     const response = await apiGateway()
-    //         .get("/api/v1/accounts")
-    //         .set("Authorization", `Bearer ${testState.authToken}`);
+        testState.accounts.push(response.body);
+    });
 
-    //     expect(response.status).toBe(200);
-    //     expect(Array.isArray(response.body)).toBe(true);
-    //     expect(response.body.length).toBeGreaterThanOrEqual(2);
+    test("List accounts should return 200 OK and array of accounts", async () => {
+        const response = await apiGateway()
+            .get("/api/v1/accounts")
+            .set("Authorization", `Bearer ${testState.authToken}`);
 
-    //     const accountNumbers = response.body.map(
-    //         (account: any) => account.accountNumber
-    //     );
+        expect(response.status).toBe(200);
+        expect(Array.isArray(response.body)).toBe(true);
+        expect(response.body.length).toBeGreaterThanOrEqual(2);
 
-    //     for (const { accountNumber } of testState.accounts) {
-    //         expect(accountNumbers).toContain(accountNumber);
-    //     }
-    // });
+        const accountNumbers = response.body.map(
+            (account: any) => account.accountNumber
+        );
 
-    // test("internal credit transaction should return 200", async () => {
-    //     const amount = 10000.01;
+        for (const { accountNumber } of testState.accounts) {
+            expect(accountNumbers).toContain(accountNumber);
+        }
+    });
 
-    //     const response = await apiGateway()
-    //         .post("/api/v1/accounts/internal/transaction")
-    //         .set("Authorization", `Bearer ${testState.authToken}`)
-    //         .send({
-    //             accountNumber: testState.accounts[0].accountNumber,
-    //             amount: amount,
-    //             type: "CREDIT",
-    //         });
+    test("internal credit transaction should return 200", async () => {
+        const amount = 10000.01;
 
-    //     expect(response.status).toBe(200);
-    //     expect(response.body).toHaveProperty(
-    //         "message",
-    //         "account transaction credit completed"
-    //     );
-    //     expect(response.body).toHaveProperty("availableBalance", amount);
-    //     testState.accounts[0].balance = response.body.availableBalance;
-    // });
+        const response = await apiGateway()
+            .post("/api/v1/accounts/internal/transaction")
+            .set("Authorization", `Bearer ${testState.authToken}`)
+            .send({
+                accountNumber: testState.accounts[0].accountNumber,
+                amount: amount,
+                type: "CREDIT",
+            });
 
-    // test("internal debit transaction should return 400", async () => {
-    //     const amount = 10000.02;
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty(
+            "message",
+            "Account transaction CREDIT completed"
+        );
+        expect(response.body).toHaveProperty("availableBalance", amount);
+        testState.accounts[0].balance = response.body.availableBalance;
+    });
 
-    //     const response = await apiGateway()
-    //         .post("/api/v1/accounts/internal/transaction")
-    //         .set("Authorization", `Bearer ${testState.authToken}`)
-    //         .send({
-    //             accountNumber: testState.accounts[0].accountNumber,
-    //             amount: amount,
-    //             type: "DEBIT",
-    //         });
+    test("internal debit transaction should return 400", async () => {
+        const amount = 10000.02;
 
-    //     expect(response.status).toBe(400);
-    //     expect(response.body).toHaveProperty("status", "error");
-    //     expect(response.body).toHaveProperty("message", "insufficient balance");
-    // });
+        const response = await apiGateway()
+            .post("/api/v1/accounts/internal/transaction")
+            .set("Authorization", `Bearer ${testState.authToken}`)
+            .send({
+                accountNumber: testState.accounts[0].accountNumber,
+                amount: amount,
+                type: "DEBIT",
+            });
 
-    // test("internal debit transaction should return 200", async () => {
-    //     const amount = 1000.04;
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty("status", "error");
+        expect(response.body).toHaveProperty("message", "Insufficient balance");
+    });
 
-    //     const response = await apiGateway()
-    //         .post("/api/v1/accounts/internal/transaction")
-    //         .set("Authorization", `Bearer ${testState.authToken}`)
-    //         .send({
-    //             accountNumber: testState.accounts[0].accountNumber,
-    //             amount: amount,
-    //             type: "debit",
-    //         });
+    test("internal debit transaction should return 200", async () => {
+        const amount = 1000.04;
 
-    //     expect(response.status).toBe(200);
-    //     expect(response.body).toHaveProperty(
-    //         "message",
-    //         "account transaction debit completed"
-    //     );
-    //     expect(response.body).toHaveProperty("availableBalance", 8999.97);
+        const response = await apiGateway()
+            .post("/api/v1/accounts/internal/transaction")
+            .set("Authorization", `Bearer ${testState.authToken}`)
+            .send({
+                accountNumber: testState.accounts[0].accountNumber,
+                amount: amount,
+                type: "DEBIT",
+            });
 
-    //     testState.accounts[0].balance = response.body.availableBalance;
-    // });
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty(
+            "message",
+            "Account transaction DEBIT completed"
+        );
+        expect(response.body).toHaveProperty("availableBalance", 8999.97);
 
-    // test("Delete account should return 200 OK", async () => {
-    //     const accountToDelete = testState.accounts[0];
+        testState.accounts[0].balance = response.body.availableBalance;
+    });
 
-    //     const response = await apiGateway()
-    //         .delete(`/api/v1/accounts/${accountToDelete.accountNumber}`)
-    //         .set("Authorization", `Bearer ${testState.authToken}`);
+    test("Delete account should return 200 OK", async () => {
+        const accountToDelete = testState.accounts[0];
 
-    //     expect(response.status).toBe(200);
-    //     expect(response.body).toHaveProperty("message");
-    //     expect(response.body.message).toContain("deleted");
+        const response = await apiGateway()
+            .delete(`/api/v1/accounts/${accountToDelete.accountNumber}`)
+            .set("Authorization", `Bearer ${testState.authToken}`);
 
-    //     testState.accounts = testState.accounts.filter(
-    //         (account) => account.accountNumber !== accountToDelete.accountNumber
-    //     );
-    // });
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("message");
+        expect(response.body.message).toContain("deleted");
 
-    // test("List accounts should throw 401 with logged out token", async () => {
-    //     const loggedOutResponse = await apiGateway()
-    //         .post("/api/v1/auth/logout")
-    //         .set("Authorization", `Bearer ${testState.authToken}`);
+        testState.accounts = testState.accounts.filter(
+            (account) => account.accountNumber !== accountToDelete.accountNumber
+        );
+    });
 
-    //     expect(loggedOutResponse.status).toBe(200);
-    //     expect(loggedOutResponse.body).toHaveProperty("message");
-    //     expect(loggedOutResponse.body.message).toBe("logged out successfully");
+    test("List accounts should throw 401 with logged out token", async () => {
+        const loggedOutResponse = await apiGateway()
+            .post("/api/v1/auth/logout")
+            .set("Authorization", `Bearer ${testState.authToken}`);
 
-    //     const response = await apiGateway()
-    //         .get("/api/v1/accounts")
-    //         .set("Authorization", `Bearer ${testState.authToken}`);
+        expect(loggedOutResponse.status).toBe(200);
+        expect(loggedOutResponse.body).toHaveProperty("message");
+        expect(loggedOutResponse.body.message).toBe("logged out successfully");
 
-    //     expect(testState.authToken).not.toBe("");
+        const response = await apiGateway()
+            .get("/api/v1/accounts")
+            .set("Authorization", `Bearer ${testState.authToken}`);
 
-    //     expect(response.status).toBe(401);
-    //     expect(response.body).toHaveProperty("message", "unauthorized");
+        expect(testState.authToken).not.toBe("");
 
-    //     testState.authToken = "";
-    // });
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty("message", "unauthorized");
+
+        testState.authToken = "";
+    });
 });

@@ -3,18 +3,34 @@ import { config } from "./config";
 import { UserType, AccountType } from "./type";
 
 
-export const getTestUser = (): UserType => ({
-    firstName: "Test",
-    lastName: "User",
-    email: `testuser_${Date.now()}@example.com`,
-    password: "Test@1234",
-});
-
 export const testState = {
     authToken: "",
     userId: "",
-    currentTestUser: getTestUser(),
+    currentTestUser: null as UserType | null, // Initialize as null
     accounts: [] as AccountType[],
+};
+let testUserInitialized = false;
+export const getTestUser = (): UserType => {
+    // If we already have a test user, return it
+    if (testState.currentTestUser) {
+        return testState.currentTestUser;
+    }
+
+    // Otherwise create a new one
+    const newUser = {
+        firstName: "Test",
+        lastName: "User",
+        email: `testuser_${Date.now()}@example.com`,
+        password: "Test@1234",
+    };
+
+    testState.currentTestUser = newUser;
+    return newUser;
+};
+
+// Add a function to explicitly set the test user
+export const setTestUser = (user: UserType) => {
+    testState.currentTestUser = user;
 };
 
 export const apiGateway = () => request(config.apiGatewayUrl);
@@ -30,13 +46,16 @@ export const registerUser = async (user: UserType) => {
     return response;
 };
 
+// In utils.ts - Fix the loginUser function
 export const loginUser = async (email: string, password: string) => {
     const response = await apiGateway()
         .post("/api/v1/auth/login")
         .send({ email, password })
         .set("Accept", "application/json");
-    if (response.body.token && response.status === 200) {
+
+    if (response.status === 200 && response.body.token) {
         testState.authToken = response.body.token;
+        console.log(`Token set successfully: ${testState.authToken.substring(0, 20)}...`);
     }
     return response;
 };
