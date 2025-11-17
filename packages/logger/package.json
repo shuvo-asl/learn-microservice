@@ -1,0 +1,19 @@
+{
+  "name": "@mbank/logger",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && npm pack"
+  },
+  "dependencies": {
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.13",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [],
+  "author": "Mohammad Mehedi Hasan",
+  "license": "ISC",
+  "description": "Logger private package for mbank microservices"
+}

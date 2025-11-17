@@ -1,0 +1,21 @@
+{
+  "name": "@mbank/kafka-client",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:pack": "tsc && npm pack"
+  },
+  "dependencies": {
+    "@mbank/logger": "../logger",
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.13",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [],
+  "author": "Mohammad Mehedi Hasan",
+  "license": "ISC",
+  "description": "Kafka private package for mbank microservices"
+}
